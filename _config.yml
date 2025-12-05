@@ -1,0 +1,58 @@
+# Seeq Technical Blog Configuration
+
+title: Seeq Engineering Blog
+description: Technical insights and innovations from the Seeq engineering team
+url: "https://seeq12.github.io"
+baseurl: "/seeqBlog"
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Author defaults
+author:
+  name: Seeq Engineering Team
+  email: engineering@seeq.com
+
+# Permalink structure
+permalink: /:year/:month/:day/:title/
+
+# Pagination
+paginate: 10
+paginate_path: "/page:num/"
+
+# Collections
+collections:
+  authors:
+    output: true
+    permalink: /authors/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Seeq Engineering"
+  - scope:
+      path: ""
+      type: "authors"
+    values:
+      layout: "author"
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .bundle
+  - .sass-cache
+  - .jekyll-cache
+  - .git
+  - README.md
