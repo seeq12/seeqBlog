@@ -67,6 +67,60 @@ Archived Monitors/Conditions Table → Restore/View Actions
 - 📦 **Archived Monitors**: Previously configured monitors with archive metadata and restore capability
 - 🗃️ **Archived Conditions**: Individual conditions no longer being monitored with trigger counts
 
+### 3. Condition Preview Modal
+**File:** `condition-preview-modal.html`
+**CRAB:** CRAB-50387
+
+Modal dialog for previewing and selecting conditions from search results before creating a monitor, with filtering and bulk selection capabilities.
+
+**Data Flow:**
+```
+Search Criteria → Execute Search → Item Finder API →
+Condition Results Table → User Selection → Confirm & Create Monitor
+```
+
+**Features:**
+- Modal dialog with search criteria display
+- Interactive search execution with loading state
+- Results table with checkboxes for condition selection
+- Real-time filtering by text and status (Active/Archived)
+- Bulk selection controls (Select All / Deselect All)
+- Selection count and validation
+- Confirm button with disabled state when no conditions selected
+
+**User Workflow:**
+1. View search criteria that will be executed
+2. Click "Execute Search" to fetch conditions from Item Finder API
+3. Review returned conditions with metadata (workbench, formula, status)
+4. Filter results using text search or Active/Archived toggles
+5. Select/deselect individual conditions or use bulk controls
+6. Confirm selection to create the monitor
+
+### 4. Condition Preview Inline
+**File:** `condition-preview-inline.html`
+**CRAB:** CRAB-50387
+
+Inline configuration view showing monitor settings, condition search criteria, and preview results all in one page layout with section-based organization.
+
+**Data Flow:**
+```
+Configuration Settings → Condition Sources Input → Execute Search →
+Item Finder API → Results Table → Create Monitor
+```
+
+**Features:**
+- Three color-coded sections (Configuration, Condition Sources, Preview Results)
+- Configuration display: Look Back/Look Ahead Duration, Cron Schedule
+- Condition search criteria with visual highlighting
+- Same interactive results table as modal version
+- All features in one scrollable page view
+- Section headers with distinct styling (blue for config, green for results)
+
+**Sections:**
+- ⚙️ **Configuration** (Blue): Monitor execution settings and schedules
+- 🔍 **Condition Sources** (Blue): Search criteria for finding conditions
+- ✅ **Preview Results** (Green): Interactive table with search execution and selection
+
 ## Viewing Mockups Locally
 
 Simply open any HTML file in your browser:
@@ -147,6 +201,8 @@ The original qomponent source files are located at:
 ```
 client/packages/qomponents/src/VantageConfigurationTabIntegratedV2/
 client/packages/qomponents/src/HistoryTabWithArchives/
+client/packages/qomponents/src/ConditionPreviewModal/
+client/packages/qomponents/src/ConditionPreviewInline/
 ```
 
 These mockups are prototypes for CRAB-50387 (Vantage: Improved flow for managing monitored conditions).

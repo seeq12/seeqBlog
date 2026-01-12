@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Condition Preview Inline - Vantage Mockup</title>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Seeq CSS Variables (RGB triplets for opacity control) */
+    :root {
+      --sq-color-dark: 42, 92, 132;
+      --sq-text-color: 58, 58, 58;
+      --sq-disabled-gray: 221, 225, 227;
+      --sq-light-gray: 241, 245, 247;
+      --sq-danger-color: 217, 83, 79;
+      --sq-hover-gray: 229, 229, 229;
+      --sq-button-background: 245, 245, 245;
+      --sq-border-color: 204, 204, 204;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: rgb(var(--sq-light-gray));
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgb(var(--sq-light-gray));
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgb(var(--sq-disabled-gray));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(var(--sq-color-dark));
+    }
+
+    /* Seeq Custom Icon Font */
+    .fc-condition::before {
+      content: "⚡";
+      font-style: normal;
+    }
+  </style>
+
+  <script>
+    // Configure Tailwind with Seeq color system
+    tailwind.config = {
+      prefix: 'tw-',
+      theme: {
+        extend: {
+          colors: {
+            'sq-color-dark': 'rgb(var(--sq-color-dark))',
+            'sq-text-color': 'rgb(var(--sq-text-color))',
+            'sq-disabled-gray': 'rgb(var(--sq-disabled-gray))',
+            'sq-light-gray': 'rgb(var(--sq-light-gray))',
+            'sq-danger-color': 'rgb(var(--sq-danger-color))',
+            'sq-hover-gray': 'rgb(var(--sq-hover-gray))',
+            'sq-button-background': 'rgb(var(--sq-button-background))',
+            'sq-border-color': 'rgb(var(--sq-border-color))',
+          },
+          height: {
+            'inputs': '34px'
+          }
+        }
+      },
+      darkMode: 'class'
+    };
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Mock Icon Component
+    const Icon = ({ icon, extraClassNames = '' }) => {
+      const iconClasses = icon.startsWith('fc-')
+        ? icon
+        : `fa-sharp fa-regular ${icon}`;
+
+      return <i className={`${iconClasses} ${extraClassNames}`}></i>;
+    };
+
+    // Mock Button Component
+    const Button = ({
+      variant = 'outline',
+      label,
+      icon,
+      onClick,
+      size = 'sm',
+      disabled = false
+    }) => {
+      const baseClasses = 'tw-inline-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-2.5 tw-rounded-md focus:tw-ring-0 tw-transition-colors tw-cursor-pointer';
+
+      const variantClasses = {
+        'outline': 'tw-bg-white tw-border tw-border-sq-disabled-gray tw-text-sq-text-color hover:tw-bg-sq-light-gray disabled:tw-bg-sq-button-background disabled:tw-text-gray-400',
+        'theme': 'tw-bg-sq-color-dark tw-border tw-border-sq-color-dark tw-text-white hover:tw-bg-opacity-90 disabled:tw-bg-sq-disabled-gray'
+      };
+
+      const sizeClasses = {
+        'sm': 'tw-text-sm tw-h-[30px]',
+        'lg': 'tw-text-base tw-h-[38px]'
+      };
+
+      return (
+        <button
+          className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          {icon && <Icon icon={icon} />}
+          {label && <span>{label}</span>}
+        </button>
+      );
+    };
+
+    // Mock TextField Component
+    const TextField = ({ label, value, disabled }) => {
+      return (
+        <div className="tw-mb-4">
+          <label className="tw-block tw-text-sm tw-font-medium tw-mb-1 tw-text-sq-text-color">
+            {label}
+          </label>
+          <input
+            type="text"
+            value={value}
+            disabled={disabled}
+            className="tw-w-full tw-h-inputs tw-px-3 tw-border tw-border-sq-disabled-gray tw-rounded tw-text-sm focus:tw-border-sq-color-dark disabled:tw-bg-sq-light-gray disabled:tw-text-gray-500"
+          />
+        </div>
+      );
+    };
+
+    // ConditionPreviewInline Component
+    const ConditionPreviewInline = ({ searchCriteria }) => {
+      const [isSearching, setIsSearching] = useState(false);
+      const [searchComplete, setSearchComplete] = useState(false);
+      const [filterText, setFilterText] = useState('');
+      const [showArchivedOnly, setShowArchivedOnly] = useState(false);
+      const [showActiveOnly, setShowActiveOnly] = useState(false);
+
+      const [conditions, setConditions] = useState([
+        {
+          id: '1',
+          name: 'High Temperature Alert',
+          workbench: 'Production Line A',
+          path: 'Assets/Manufacturing/Line A/High Temperature Alert',
+          formula: 'Temperature > 150',
+          lastUpdated: new Date(Date.now() - 86400000),
+          isArchived: false,
+          selected: true,
+        },
+        {
+          id: '2',
+          name: 'Pressure Threshold Exceeded',
+          workbench: 'Critical Alerts',
+          path: 'Assets/Safety/Critical Alerts/Pressure Threshold Exceeded',
+          formula: 'Pressure > 100 psi',
+          lastUpdated: new Date(Date.now() - 172800000),
+          isArchived: false,
+          selected: true,
+        },
+        {
+          id: '3',
+          name: 'Temperature Out of Range',
+          workbench: 'Quality Control',
+          path: 'Assets/QC/Temperature Out of Range',
+          formula: 'Temperature < 50 OR Temperature > 200',
+          lastUpdated: new Date(Date.now() - 259200000),
+          isArchived: false,
+          selected: true,
+        },
+        {
+          id: '4',
+          name: 'Low Pressure Warning',
+          workbench: 'Maintenance',
+          path: 'Assets/Maintenance/Low Pressure Warning',
+          lastUpdated: new Date(Date.now() - 604800000),
+          isArchived: true,
+          selected: false,
+        },
+        {
+          id: '5',
+          name: 'Temperature Spike Detection',
+          workbench: 'Production Line B',
+          path: 'Assets/Manufacturing/Line B/Temperature Spike Detection',
+          formula: 'Temperature Delta > 20',
+          lastUpdated: new Date(Date.now() - 432000000),
+          isArchived: false,
+          selected: true,
+        },
+      ]);
+
+      const handleSearch = () => {
+        setIsSearching(true);
+        setTimeout(() => {
+          setIsSearching(false);
+          setSearchComplete(true);
+        }, 1500);
+      };
+
+      const handleSelectAll = () => {
+        setConditions(conditions.map((c) => ({ ...c, selected: true })));
+      };
+
+      const handleDeselectAll = () => {
+        setConditions(conditions.map((c) => ({ ...c, selected: false })));
+      };
+
+      const handleToggleCondition = (id) => {
+        setConditions(conditions.map((c) => (c.id === id ? { ...c, selected: !c.selected } : c)));
+      };
+
+      const handleConfirm = () => {
+        alert(`Creating monitor with ${conditions.filter(c => c.selected).length} selected conditions`);
+      };
+
+      const formatDate = (date) => {
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+      };
+
+      const filteredConditions = conditions.filter((condition) => {
+        if (filterText) {
+          const searchLower = filterText.toLowerCase();
+          const matchesText =
+            condition.name.toLowerCase().includes(searchLower) ||
+            condition.workbench.toLowerCase().includes(searchLower) ||
+            condition.path.toLowerCase().includes(searchLower) ||
+            (condition.formula && condition.formula.toLowerCase().includes(searchLower));
+          if (!matchesText) return false;
+        }
+
+        if (showArchivedOnly && !condition.isArchived) return false;
+        if (showActiveOnly && condition.isArchived) return false;
+
+        return true;
+      });
+
+      const selectedCount = filteredConditions.filter((c) => c.selected).length;
+      const totalCount = filteredConditions.length;
+
+      return (
+        <div className="tw-p-6 tw-border tw-rounded-lg tw-bg-white dark:tw-bg-gray-900">
+          <div className="tw-mb-6">
+            <h2 className="tw-text-2xl tw-font-bold tw-mb-2">Condition Monitor Configuration</h2>
+            <p className="tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+              Configure your condition search and preview results before creating the monitor
+            </p>
+          </div>
+
+          {/* Configuration Section */}
+          <div className="tw-mb-6">
+            <div className="tw-border-2 tw-border-blue-500 tw-rounded tw-px-3 tw-py-1 tw-bg-blue-50 dark:tw-bg-blue-900/20 tw-inline-block tw-mb-3">
+              <h3 className="tw-text-base tw-font-bold tw-text-blue-900 dark:tw-text-blue-100">Configuration</h3>
+            </div>
+
+            <div className="tw-grid tw-grid-cols-2 tw-gap-4 tw-mb-4">
+              <TextField label="Look Back Duration (days)" value="7" disabled />
+              <TextField label="Look Ahead Duration (days)" value="0" disabled />
+            </div>
+
+            <TextField label="Cron Schedule" value="*/15 * * * *" disabled />
+            <div className="tw-text-xs tw-text-gray-500 tw-mt-1">Every 15 minutes</div>
+          </div>
+
+          {/* Search Criteria Display */}
+          <div className="tw-mb-6">
+            <div className="tw-border-2 tw-border-blue-500 tw-rounded tw-px-3 tw-py-1 tw-bg-blue-50 dark:tw-bg-blue-900/20 tw-inline-block tw-mb-3">
+              <h3 className="tw-text-base tw-font-bold tw-text-blue-900 dark:tw-text-blue-100">Condition Sources</h3>
+            </div>
+
+            <div className="tw-p-4 tw-bg-blue-50 dark:tw-bg-blue-900/20 tw-rounded-lg tw-border tw-border-blue-200 dark:tw-border-blue-800">
+              <div className="tw-flex tw-items-center tw-gap-2 tw-mb-2">
+                <Icon icon="fa-search" extraClassNames="tw-text-blue-600" />
+                <span className="tw-font-semibold tw-text-blue-900 dark:tw-text-blue-100">Search Criteria:</span>
+              </div>
+              <div className="tw-text-sm tw-text-blue-800 dark:tw-text-blue-200 tw-font-mono">{searchCriteria}</div>
+            </div>
+          </div>
+
+          {/* Preview Section */}
+          <div className="tw-mb-6">
+            <div className="tw-border-2 tw-border-green-500 tw-rounded tw-px-3 tw-py-1 tw-bg-green-50 dark:tw-bg-green-900/20 tw-inline-block tw-mb-3">
+              <h3 className="tw-text-base tw-font-bold tw-text-green-900 dark:tw-text-green-100">Preview Results</h3>
+            </div>
+
+            {!searchComplete ? (
+              <div className="tw-text-center tw-py-12 tw-bg-gray-50 dark:tw-bg-gray-800 tw-rounded-lg tw-border">
+                <Icon icon="fa-search" extraClassNames="tw-mb-4 tw-text-gray-400 tw-text-5xl" />
+                <p className="tw-text-gray-600 dark:tw-text-gray-400 tw-mb-4">
+                  Click "Execute Search" to preview conditions that match your criteria
+                </p>
+                <Button
+                  variant="theme"
+                  label={isSearching ? 'Searching...' : 'Execute Search'}
+                  icon="fa-play"
+                  onClick={handleSearch}
+                  disabled={isSearching}
+                />
+              </div>
+            ) : (
+              <>
+                {/* Results Header with Filters */}
+                <div className="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4">
+                  <div className="tw-flex tw-items-center tw-gap-2">
+                    <Icon icon="fa-list" extraClassNames="tw-text-green-600" />
+                    <span className="tw-font-semibold">
+                      Found {totalCount} condition{totalCount !== 1 ? 's' : ''} ({selectedCount} selected)
+                    </span>
+                  </div>
+
+                  <div className="tw-flex tw-items-center tw-gap-2">
+                    <input
+                      type="text"
+                      placeholder="Filter results..."
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                      className="tw-px-3 tw-py-1 tw-text-sm tw-border tw-rounded"
+                    />
+                    <Button variant="outline" label="Select All" size="sm" onClick={handleSelectAll} />
+                    <Button variant="outline" label="Deselect All" size="sm" onClick={handleDeselectAll} />
+                  </div>
+                </div>
+
+                {/* Filter Toggles */}
+                <div className="tw-mb-4 tw-flex tw-gap-4">
+                  <label className="tw-flex tw-items-center tw-gap-2 tw-text-sm">
+                    <input
+                      type="checkbox"
+                      checked={showActiveOnly}
+                      onChange={(e) => {
+                        setShowActiveOnly(e.target.checked);
+                        if (e.target.checked) setShowArchivedOnly(false);
+                      }}
+                    />
+                    Show Active Only
+                  </label>
+                  <label className="tw-flex tw-items-center tw-gap-2 tw-text-sm">
+                    <input
+                      type="checkbox"
+                      checked={showArchivedOnly}
+                      onChange={(e) => {
+                        setShowArchivedOnly(e.target.checked);
+                        if (e.target.checked) setShowActiveOnly(false);
+                      }}
+                    />
+                    Show Archived Only
+                  </label>
+                </div>
+
+                {/* Results Table */}
+                <div className="tw-border tw-rounded-lg tw-overflow-hidden tw-max-h-96 tw-overflow-y-auto">
+                  <table className="tw-w-full">
+                    <thead className="tw-bg-gray-100 dark:tw-bg-gray-800 tw-sticky tw-top-0">
+                      <tr>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold tw-w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedCount === totalCount && totalCount > 0}
+                            onChange={selectedCount === totalCount ? handleDeselectAll : handleSelectAll}
+                          />
+                        </th>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Condition Name</th>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Workbench</th>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Formula</th>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Last Updated</th>
+                        <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredConditions.map((condition) => (
+                        <tr
+                          key={condition.id}
+                          className={`tw-border-t dark:tw-border-gray-700 hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 ${
+                            condition.isArchived ? 'tw-opacity-60' : ''
+                          }`}
+                        >
+                          <td className="tw-px-4 tw-py-3">
+                            <input
+                              type="checkbox"
+                              checked={condition.selected}
+                              onChange={() => handleToggleCondition(condition.id)}
+                            />
+                          </td>
+                          <td className="tw-px-4 tw-py-3">
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <Icon icon="fc-condition" />
+                              <div>
+                                <div className="tw-text-sm tw-font-medium">{condition.name}</div>
+                                <div className="tw-text-xs tw-text-gray-500">{condition.path}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                            {condition.workbench}
+                          </td>
+                          <td className="tw-px-4 tw-py-3 tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">
+                            {condition.formula || '-'}
+                          </td>
+                          <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                            {formatDate(condition.lastUpdated)}
+                          </td>
+                          <td className="tw-px-4 tw-py-3">
+                            {condition.isArchived ? (
+                              <span className="tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-bg-gray-200 dark:tw-bg-gray-700 tw-text-gray-700 dark:tw-text-gray-300">
+                                Archived
+                              </span>
+                            ) : (
+                              <span className="tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-bg-green-100 dark:tw-bg-green-900/30 tw-text-green-800 dark:tw-text-green-300">
+                                Active
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          {searchComplete && (
+            <div className="tw-flex tw-items-center tw-justify-between tw-pt-4 tw-border-t">
+              <div className="tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                {selectedCount > 0 ? (
+                  <>
+                    <Icon icon="fa-check-circle" extraClassNames="tw-mr-1 tw-text-green-600" />
+                    {selectedCount} condition{selectedCount !== 1 ? 's' : ''} will be monitored
+                  </>
+                ) : (
+                  <>
+                    <Icon icon="fa-exclamation-triangle" extraClassNames="tw-mr-1 tw-text-orange-600" />
+                    No conditions selected
+                  </>
+                )}
+              </div>
+              <div className="tw-flex tw-gap-2">
+                <Button variant="outline" label="Cancel" onClick={() => setSearchComplete(false)} />
+                <Button
+                  variant="theme"
+                  label="Create Monitor"
+                  icon="fa-check"
+                  onClick={handleConfirm}
+                  disabled={selectedCount === 0}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Render the component
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <div className="tw-p-8">
+        <ConditionPreviewInline searchCriteria='Name contains "Temperature" OR "Pressure"' />
+      </div>
+    );
+  </script>
+</body>
+</html>
