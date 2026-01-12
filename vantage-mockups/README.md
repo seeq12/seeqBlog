@@ -129,20 +129,24 @@ Condition Results Table → User Selection → Confirm & Create Monitor
 └────────────────────────┘
 ```
 
-**API Structure:**
+**API Structure (from seek-sdk-notebook):**
+
+Reference: [`02-item-finder-search.ipynb`](https://github.com/seeq12/seek-sdk-notebook/blob/master/notebooks/02-item-finder-search.ipynb)
+
 ```typescript
 // Request Payload
 interface ItemFinderSearchesInputV1 {
   propertySearches: PropertySearchV1[];
   fixedListSearches?: FixedListSearchV1[];
-  limit: number;  // default: 40
+  limit: number;        // default: 40
+  offset?: number;      // for pagination
 }
 
 interface PropertySearchV1 {
   searchType: 'PROPERTY';
-  isInclude: boolean;  // true = AND, false = NOT
+  isInclude: boolean;   // true = AND/include, false = NOT/exclude
   predicates: PredicateV1[];
-  types: string[];     // ['Condition', 'Signal', etc.]
+  types: string[];      // ['Condition', 'Signal', etc.]
 }
 
 interface PredicateV1 {
@@ -155,9 +159,51 @@ interface PredicateV1 {
 interface ItemFinderSearchesOutputV1 {
   items: ItemOutputV1[];
   hasMore: boolean;
-  offset?: string;
+  offset?: number;     // Next page offset
 }
 ```
+
+**Example Search Payload (from notebook):**
+```typescript
+// Search for conditions containing "Temperature" OR "Pressure" in name
+{
+  propertySearches: [
+    {
+      searchType: 'PROPERTY',
+      isInclude: true,
+      predicates: [{
+        propertyName: 'Name',
+        operator: 'STRING_CONTAINS',
+        values: [
+          { value: 'Temperature' },
+          { value: 'Pressure' }
+        ]
+      }],
+      types: ['Condition']
+    }
+  ],
+  fixedListSearches: [],
+  limit: 40
+}
+```
+
+**Pagination Pattern (from notebook):**
+```typescript
+// Initial request
+const page1 = await itemsApi.executeItemFinderSearches(searchPayload);
+// Returns: { items: [...], hasMore: true, offset: 123 }
+
+// Fetch next page
+const page2Payload = { ...searchPayload, offset: page1.data.offset };
+const page2 = await itemsApi.executeItemFinderSearches(page2Payload);
+```
+
+**Key API Patterns from Notebook:**
+- Multiple predicates within one search = AND logic
+- Multiple property searches = OR logic
+- `isInclude: false` = NOT/exclude logic
+- Supports multiple item types in single search
+- Pagination via `limit`, `offset`, and `hasMore` flag
 
 **Features:**
 - Modal dialog with search criteria display
