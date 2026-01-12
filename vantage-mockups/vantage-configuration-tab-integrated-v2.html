@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vantage Configuration Mockups Viewer</title>
+
+  <!-- React and ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel Standalone for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Seeq Custom Icon Font (fallback to Font Awesome for unavailable icons) -->
+  <style>
+    /* Seeq CSS Variables - matching styles.css */
+    :root {
+        --sq-color-dark: 42, 92, 132;
+        --sq-color-dark-dark: 145, 180, 203;
+        --sq-white: 255, 255, 255;
+        --sq-color-highlight: 4, 145, 194;
+        --sq-text-color: 58, 58, 58;
+        --sq-disabled-gray: 221, 225, 227;
+        --sq-light-gray: 241, 245, 247;
+        --sq-dark-gray: 226, 226, 226;
+        --sq-fairly-dark-gray: 96, 96, 97;
+        --sq-darkish-gray: 183, 183, 183;
+        --sq-danger-color: 217, 83, 79;
+        --sq-warning-color: 240, 173, 78;
+        --sq-bg-warning-color: 255, 243, 205;
+        --sq-success-color: 114, 192, 44;
+        --sq-icon: 4, 145, 194;
+        --sq-link: 42, 92, 132;
+        --sq-dark-background: 13, 17, 23;
+        --sq-dark-text: 230, 236, 242;
+        --sq-dark-disabled-gray: 34, 50, 73;
+        --sq-highlight-color-dark: 21, 27, 35;
+        --sq-gray-highlight: 249, 249, 249;
+        --sq-gray-highlight-dark: 21, 27, 35;
+        --sq-colored-hover: 238, 246, 253;
+        --sq-colored-hover-dark: 38, 44, 54;
+        --sq-multi-gray-dark: 38, 44, 54;
+        --sq-field-disabled-gray: 239, 239, 239;
+        --sq-overlay-gray: 238, 237, 238;
+        --sq-overlay-gray-dark: 13, 17, 23;
+        --sq-worksheetspanel-gray: 241, 243, 244;
+        --sq-worksheetspanel-gray-dark: 21, 27, 35;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    /* Scenario selector styling */
+    .scenario-selector {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #1f2937;
+      color: white;
+      padding: 1rem;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .scenario-selector h1 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    .scenario-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .scenario-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid #4b5563;
+      border-radius: 0.375rem;
+      background: #374151;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .scenario-btn:hover {
+      background: #4b5563;
+      border-color: #6b7280;
+    }
+
+    .scenario-btn.active {
+      background: #3b82f6;
+      border-color: #2563eb;
+    }
+
+    .app-container {
+      margin-top: 120px;
+    }
+  </style>
+
+  <!-- Tailwind CSS with Seeq theme configuration -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      prefix: 'tw-',
+      theme: {
+        extend: {
+          height: {
+            'inputs': '34px',
+          },
+          colors: {
+            'sq-color-dark': 'rgb(var(--sq-color-dark))',
+            'sq-color-dark-dark': 'rgb(var(--sq-color-dark-dark))',
+            'sq-color-highlight': 'rgb(var(--sq-color-highlight))',
+            'sq-white': 'rgb(var(--sq-white))',
+            'sq-text-color': 'rgb(var(--sq-text-color))',
+            'sq-disabled-gray': 'rgb(var(--sq-disabled-gray))',
+            'sq-darkish-gray': 'rgb(var(--sq-darkish-gray))',
+            'sq-light-gray': 'rgb(var(--sq-light-gray))',
+            'sq-dark-gray': 'rgb(var(--sq-dark-gray))',
+            'sq-danger-color': 'rgb(var(--sq-danger-color))',
+            'sq-danger-color-hover': 'rgb(185, 74, 72)',
+            'sq-icon': 'rgb(var(--sq-icon))',
+            'sq-link': 'rgb(var(--sq-link))',
+            'sq-success-color': 'rgb(var(--sq-success-color))',
+            'sq-warning-color': 'rgb(var(--sq-warning-color))',
+            'sq-bg-warning-color': 'rgb(var(--sq-bg-warning-color))',
+            'sq-fairly-dark-gray': 'rgb(var(--sq-fairly-dark-gray))',
+            'sq-dark-background': 'rgb(var(--sq-dark-background))',
+            'sq-dark-text': 'rgb(var(--sq-dark-text))',
+            'sq-dark-disabled-gray': 'rgb(var(--sq-dark-disabled-gray))',
+            'sq-highlight-color-dark': 'rgb(var(--sq-highlight-color-dark))',
+            'sq-gray-highlight': 'rgb(var(--sq-gray-highlight))',
+            'sq-multi-gray-dark': 'rgb(var(--sq-multi-gray-dark))',
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="scenario-selector">
+    <h1>🎨 Vantage Configuration Tab - Interactive Mockups</h1>
+    <div class="scenario-buttons" id="scenario-buttons"></div>
+  </div>
+
+  <div class="app-container" id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Exact Button Component matching qomponents
+    const Button = ({ variant = 'outline', label, icon, onClick, size = 'sm', extraClassNames = '', disabled = false }) => {
+      const baseClasses = 'tw-px-2.5 tw-rounded-md focus:tw-ring-0 focus-visible:tw-outline-none aria-disabled:tw-cursor-not-allowed disabled:tw-pointer-events-none';
+
+      const baseClassesByVariant = {
+        'outline': 'disabled:tw-opacity-50 aria-disabled:tw-opacity-50 tw-border-solid tw-border',
+        'theme': 'disabled:tw-opacity-50 aria-disabled:tw-opacity-50 tw-border-solid tw-border',
+        'danger': 'tw-bg-sq-danger-color disabled:tw-opacity-50 aria-disabled:tw-opacity-50 tw-border-solid tw-border tw-border-sq-danger-color',
+      };
+
+      const textClassesByVariant = {
+        'outline': 'tw-text-sq-text-color',
+        'theme': 'tw-text-white',
+        'danger': 'tw-text-white',
+      };
+
+      const classesByVariant = {
+        'outline': 'tw-bg-white tw-border-sq-disabled-gray',
+        'theme': 'tw-bg-sq-color-dark tw-border-sq-color-dark',
+        'danger': '',
+      };
+
+      const activeClassesByVariant = {
+        'outline': 'hover:tw-bg-sq-light-gray focus:tw-bg-sq-dark-gray active:tw-bg-sq-dark-gray focus:tw-border-sq-color-dark active:tw-border-sq-color-dark',
+        'theme': 'hover:tw-bg-sq-color-highlight hover:tw-border-sq-color-highlight',
+        'danger': 'hover:tw-bg-sq-danger-color-hover hover:tw-border-sq-danger-color-hover',
+      };
+
+      const sizeClasses = {
+        xs: 'tw-text-xs tw-py-0.5',
+        sm: 'tw-text-sm tw-py-1',
+        lg: 'tw-text-xl tw-py-1',
+      };
+
+      let appliedClasses = `${baseClasses} ${baseClassesByVariant[variant]} ${sizeClasses[size]} ${classesByVariant[variant]} ${textClassesByVariant[variant]} ${extraClassNames}`;
+
+      if (!disabled) {
+        appliedClasses += ` ${activeClassesByVariant[variant]}`;
+      }
+
+      return (
+        <button
+          className={appliedClasses}
+          onClick={onClick}
+          disabled={disabled}
+          aria-disabled={disabled}
+        >
+          {icon && <i className={`fa ${icon} tw-mr-1 ${textClassesByVariant[variant]}`}></i>}
+          {label}
+        </button>
+      );
+    };
+
+    // Exact Icon Component matching qomponents
+    const Icon = ({ icon, size = '1x', extraClassNames = '', type = 'theme' }) => {
+      const colorClassesThemeLight = {
+        'theme': 'tw-text-sq-color-dark',
+        'text': 'tw-text-sq-text-color',
+      };
+
+      const fontAwesomePrefix = 'fa-sharp fa-regular';
+      const iconPrefixString = icon.startsWith('fc') ? 'fc' : fontAwesomePrefix;
+      const sizeClass = size !== '1x' ? `fa-${size}` : '';
+
+      const appliedClassNames = `${iconPrefixString} ${icon} ${sizeClass} ${colorClassesThemeLight[type]} ${extraClassNames} focus:tw-outline-none focus-visible:tw-outline-none tw-outline-none`;
+
+      return <i className={appliedClassNames}></i>;
+    };
+
+    // Exact TextField Component matching qomponents (with label wrapper)
+    const TextField = ({ label, value, disabled = false, onChange }) => {
+      const borderColorClasses = 'tw-border-sq-disabled-gray focus:tw-border-sq-color-dark active:tw-border-sq-color-dark';
+      const baseClasses = 'tw-h-inputs tw-leading-normal tw-outline-none tw-py-1 tw-px-3 disabled:tw-pointer-events-none disabled:tw-bg-sq-light-gray disabled:tw-cursor-not-allowed tw-p-1 tw-border-solid tw-border tw-placeholder-gray-400';
+      const lightTheme = 'tw-text-sq-text-color disabled:tw-text-sq-darkish-gray';
+      const sizeClasses = 'tw-text-sm';
+      const borderRadius = 'tw-rounded-md';
+
+      const appliedClasses = `${baseClasses} ${sizeClasses} ${lightTheme} ${borderRadius} ${borderColorClasses}`;
+
+      return (
+        <div className="tw-flex tw-flex-col tw-gap-1">
+          {label && (
+            <label className="tw-text-sm tw-font-medium tw-text-sq-text-color">
+              {label}
+            </label>
+          )}
+          <input
+            type="text"
+            value={value}
+            disabled={disabled}
+            onChange={onChange}
+            className={appliedClasses}
+          />
+        </div>
+      );
+    };
+
+    // Exact Tabs Component matching qomponents (simplified without Radix)
+    const Tabs = ({ tabs, activeTabIndex, onTabChange }) => {
+      return (
+        <div className="tw-flex tw-flex-col tw-min-w-[300px] tw-max-w-full tw-flex-grow focus-visible:tw-outline-none">
+          <div className="tw-flex tw-flex-row tw-flex-wrap tw-z-[1001]">
+            {tabs.map((tab, index) => (
+              <button
+                key={index}
+                onClick={() => onTabChange(index)}
+                className={`tw-bg-sq-white tw-h-[25px] focus-visible:tw-outline-none tw-min-w-[100px] tw-px-4 tw-border-solid tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-r-[2px] last:tw-border-r-0 tw-max-w-max tw-min-w-fit ${
+                  activeTabIndex === index
+                    ? 'tw-border-b-sq-color-dark tw-border-b-[3px]'
+                    : 'hover:tw-bg-sq-light-gray tw-border-b-[1px]'
+                }`}
+              >
+                <span className="tw-flex tw-items-center tw-overflow-hidden tw-pb-[3px]">
+                  <Icon icon={tab.icon} extraClassNames="tw-text-[0.9375rem] tw-mr-[7px] tw-flex-shrink-0" />
+                  <span
+                    className={`tw-text-[0.875rem] tw-font-medium tw-whitespace-nowrap tw-overflow-hidden tw-text-ellipsis ${
+                      activeTabIndex === index
+                        ? 'tw-text-gray-500'
+                        : 'tw-text-sq-color-dark'
+                    }`}
+                  >
+                    {tab.label}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="tw-bg-sq-white tw-overflow-y-auto -tw-mt-[1px] tw-border-t-[1px] tw-z-[500] tw-flex tw-flex-col tw-flex-grow focus-visible:tw-outline-none">
+            {tabs[activeTabIndex]?.content}
+          </div>
+        </div>
+      );
+    };
+
+    // VantageConfigurationTabIntegratedV2 Component - Exact replica
+    const VantageConfigurationTabIntegratedV2 = ({
+      isAdmin = true,
+      hasConditionMonitor = false,
+    }) => {
+      const [activeTab, setActiveTab] = useState(0);
+      const [isEditMode, setIsEditMode] = useState(!hasConditionMonitor);
+
+      const tabs = [
+        {
+          label: 'Configuration',
+          icon: 'fa-cog',
+          content: (
+            <div className="tw-p-6">
+              <div className="tw-mb-6">
+                <h2 className="tw-text-2xl tw-font-bold tw-mb-2">Condition Monitor Configuration</h2>
+                <p className="tw-text-sm tw-text-gray-600">
+                  {isAdmin
+                    ? 'Configure how and when your condition monitor runs'
+                    : 'View the current configuration for this condition monitor'}
+                </p>
+              </div>
+
+              {hasConditionMonitor && !isEditMode && !isAdmin && (
+                <div className="tw-mb-6 tw-p-4 tw-bg-blue-50 tw-rounded-lg tw-border tw-border-blue-200">
+                  <div className="tw-flex tw-items-start tw-gap-3">
+                    <Icon icon="fa-lock" extraClassNames="tw-text-blue-600 tw-mt-0.5" />
+                    <div>
+                      <div className="tw-font-semibold tw-text-blue-900 tw-mb-1">
+                        View-Only Access
+                      </div>
+                      <p className="tw-text-sm tw-text-blue-800">
+                        You have read-only access to this condition monitor configuration. Contact an administrator to
+                        make changes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!hasConditionMonitor && !isAdmin && (
+                <div className="tw-text-center tw-py-16 tw-bg-gray-50 tw-rounded-lg tw-border tw-border-dashed">
+                  <Icon icon="fa-cog" size="3x" extraClassNames="tw-mb-4 tw-text-gray-400" />
+                  <h3 className="tw-text-xl tw-font-semibold tw-mb-2">No Condition Monitor Configured</h3>
+                  <p className="tw-text-gray-600">
+                    An administrator needs to configure a condition monitor before you can view it.
+                  </p>
+                </div>
+              )}
+
+              {(isAdmin || hasConditionMonitor) && (
+                <div className="tw-space-y-6">
+                  {/* Schedule Section */}
+                  <div>
+                    <div className="tw-border-2 tw-border-blue-500 tw-rounded tw-px-3 tw-py-1 tw-bg-blue-50 tw-inline-block tw-mb-3">
+                      <h3 className="tw-text-base tw-font-bold tw-text-blue-900">Schedule</h3>
+                    </div>
+
+                    <div className="tw-grid tw-grid-cols-2 tw-gap-4 tw-mb-4">
+                      <TextField label="Look Back Duration (days)" value="7" disabled={!isEditMode} />
+                      <TextField label="Look Ahead Duration (days)" value="0" disabled={!isEditMode} />
+                    </div>
+
+                    <TextField label="Cron Schedule" value="*/15 * * * *" disabled={!isEditMode} />
+                    <div className="tw-text-xs tw-text-gray-500 tw-mt-1">Every 15 minutes</div>
+                  </div>
+
+                  {/* Condition Sources Section */}
+                  <div>
+                    <div className="tw-border-2 tw-border-blue-500 tw-rounded tw-px-3 tw-py-1 tw-bg-blue-50 tw-inline-block tw-mb-3">
+                      <h3 className="tw-text-base tw-font-bold tw-text-blue-900">
+                        Condition Sources
+                      </h3>
+                    </div>
+
+                    <div className="tw-p-4 tw-bg-gray-50 tw-rounded-lg tw-border">
+                      <div className="tw-flex tw-items-center tw-justify-between tw-mb-3">
+                        <div className="tw-flex tw-items-center tw-gap-2">
+                          <Icon icon="fa-search" />
+                          <span className="tw-font-semibold">Item Finder Search</span>
+                        </div>
+                        {isEditMode && <Button variant="outline" label="Edit Search" icon="fa-pencil" size="sm" />}
+                      </div>
+                      <div className="tw-text-sm tw-text-gray-600 tw-font-mono">
+                        Name contains "Temperature" OR "Pressure"
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Admin Only */}
+                  {isAdmin && (
+                    <div className="tw-flex tw-gap-3 tw-pt-4 tw-border-t">
+                      {!isEditMode ? (
+                        <>
+                          <Button
+                            variant="theme"
+                            label="Edit Configuration"
+                            icon="fa-pencil"
+                            onClick={() => setIsEditMode(true)}
+                          />
+                          {hasConditionMonitor && <Button variant="outline" label="Delete Monitor" icon="fa-trash" />}
+                        </>
+                      ) : (
+                        <>
+                          <Button variant="theme" label="Save Changes" icon="fa-check" onClick={() => setIsEditMode(false)} />
+                          <Button variant="outline" label="Cancel" onClick={() => setIsEditMode(false)} />
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ),
+        },
+        {
+          label: 'Conditions',
+          icon: 'fa-list-check',
+          content: (
+            <div className="tw-p-6">
+              <div className="tw-mb-6">
+                <h2 className="tw-text-2xl tw-font-bold tw-mb-2">Monitored Conditions</h2>
+                <p className="tw-text-sm tw-text-gray-600">
+                  View and manage conditions discovered by your monitor
+                </p>
+              </div>
+
+              {!hasConditionMonitor ? (
+                <div className="tw-text-center tw-py-16 tw-bg-gray-50 tw-rounded-lg tw-border tw-border-dashed">
+                  <Icon icon="fa-list-check" size="3x" extraClassNames="tw-mb-4 tw-text-gray-400" />
+                  <h3 className="tw-text-xl tw-font-semibold tw-mb-2">No Conditions Yet</h3>
+                  <p className="tw-text-gray-600 tw-mb-4">
+                    {isAdmin
+                      ? 'Configure a condition monitor in the Configuration tab to start tracking conditions.'
+                      : 'Conditions will appear here once an administrator configures the monitor.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="tw-text-center tw-py-16 tw-bg-gray-50 tw-rounded-lg">
+                  <Icon icon="fa-list-check" size="2x" extraClassNames="tw-mb-4 tw-text-gray-400" />
+                  <p className="tw-text-gray-600">
+                    Conditions will appear here after the monitor runs
+                  </p>
+                  <Button variant="theme" label="Run Now" icon="fa-play" extraClassNames="tw-mt-4" />
+                </div>
+              )}
+            </div>
+          ),
+        },
+        {
+          label: 'History',
+          icon: 'fa-history',
+          content: (
+            <div className="tw-p-6">
+              <div className="tw-mb-6">
+                <h2 className="tw-text-2xl tw-font-bold tw-mb-2">Run History</h2>
+                <p className="tw-text-sm tw-text-gray-600">
+                  View execution history for this condition monitor
+                </p>
+              </div>
+
+              {!hasConditionMonitor ? (
+                <div className="tw-text-center tw-py-16 tw-bg-gray-50 tw-rounded-lg tw-border tw-border-dashed">
+                  <Icon icon="fa-history" size="3x" extraClassNames="tw-mb-4 tw-text-gray-400" />
+                  <h3 className="tw-text-xl tw-font-semibold tw-mb-2">No History Available</h3>
+                  <p className="tw-text-gray-600">
+                    History will appear here once the condition monitor has been configured and run.
+                  </p>
+                </div>
+              ) : (
+                <div className="tw-text-center tw-py-16 tw-bg-gray-50 tw-rounded-lg">
+                  <Icon icon="fa-history" size="2x" extraClassNames="tw-mb-4 tw-text-gray-400" />
+                  <p className="tw-text-gray-600">No runs yet</p>
+                </div>
+              )}
+            </div>
+          ),
+        },
+      ];
+
+      return (
+        <div className="tw-bg-white tw-min-h-screen">
+          <Tabs tabs={tabs} activeTabIndex={activeTab} onTabChange={setActiveTab} />
+        </div>
+      );
+    };
+
+    // Main App Component
+    const App = () => {
+      const scenarios = [
+        { id: 'admin-full', name: '🔐 Admin - Full Control', props: { isAdmin: true, hasConditionMonitor: true } },
+        { id: 'admin-setup', name: '⚙️ Admin - Initial Setup', props: { isAdmin: true, hasConditionMonitor: false } },
+        { id: 'view-only', name: '👁️ View Only - Read Access', props: { isAdmin: false, hasConditionMonitor: true } },
+        { id: 'view-only-empty', name: '🚫 View Only - No Config', props: { isAdmin: false, hasConditionMonitor: false } },
+      ];
+
+      const [activeScenario, setActiveScenario] = useState(scenarios[0]);
+
+      // Render scenario buttons
+      React.useEffect(() => {
+        const buttonsContainer = document.getElementById('scenario-buttons');
+        buttonsContainer.innerHTML = '';
+
+        scenarios.forEach(scenario => {
+          const button = document.createElement('button');
+          button.className = `scenario-btn ${activeScenario.id === scenario.id ? 'active' : ''}`;
+          button.textContent = scenario.name;
+          button.onclick = () => setActiveScenario(scenario);
+          buttonsContainer.appendChild(button);
+        });
+      }, [activeScenario]);
+
+      return <VantageConfigurationTabIntegratedV2 {...activeScenario.props} />;
+    };
+
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
