@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History Tab with Archives - Vantage Mockup</title>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Seeq CSS Variables (RGB triplets for opacity control) */
+    :root {
+      --sq-color-dark: 42, 92, 132;
+      --sq-text-color: 58, 58, 58;
+      --sq-disabled-gray: 221, 225, 227;
+      --sq-light-gray: 241, 245, 247;
+      --sq-danger-color: 217, 83, 79;
+      --sq-hover-gray: 229, 229, 229;
+      --sq-button-background: 245, 245, 245;
+      --sq-border-color: 204, 204, 204;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgb(var(--sq-light-gray));
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgb(var(--sq-disabled-gray));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(var(--sq-color-dark));
+    }
+  </style>
+
+  <script>
+    // Configure Tailwind with Seeq color system
+    tailwind.config = {
+      prefix: 'tw-',
+      theme: {
+        extend: {
+          colors: {
+            'sq-color-dark': 'rgb(var(--sq-color-dark))',
+            'sq-text-color': 'rgb(var(--sq-text-color))',
+            'sq-disabled-gray': 'rgb(var(--sq-disabled-gray))',
+            'sq-light-gray': 'rgb(var(--sq-light-gray))',
+            'sq-danger-color': 'rgb(var(--sq-danger-color))',
+            'sq-hover-gray': 'rgb(var(--sq-hover-gray))',
+            'sq-button-background': 'rgb(var(--sq-button-background))',
+            'sq-border-color': 'rgb(var(--sq-border-color))',
+          },
+          height: {
+            'inputs': '34px'
+          }
+        }
+      },
+      darkMode: 'class'
+    };
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Mock Icon Component (matching Icon.tsx API)
+    const Icon = ({ icon, extraClassNames = '' }) => {
+      const iconClasses = icon.startsWith('fc-')
+        ? icon
+        : `fa-sharp fa-regular ${icon}`;
+
+      return (
+        <i className={`${iconClasses} ${extraClassNames}`}></i>
+      );
+    };
+
+    // Mock Button Component (matching Button.tsx API)
+    const Button = ({
+      variant = 'outline',
+      label,
+      icon,
+      onClick,
+      size = 'sm',
+      disabled = false,
+      tooltip
+    }) => {
+      const baseClasses = 'tw-inline-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-2.5 tw-rounded-md focus:tw-ring-0 tw-transition-colors tw-cursor-pointer';
+
+      const variantClasses = {
+        'outline': 'tw-bg-white tw-border tw-border-sq-disabled-gray tw-text-sq-text-color hover:tw-bg-sq-light-gray disabled:tw-bg-sq-button-background disabled:tw-text-gray-400',
+        'theme': 'tw-bg-sq-color-dark tw-border tw-border-sq-color-dark tw-text-white hover:tw-bg-opacity-90 disabled:tw-bg-sq-disabled-gray',
+        'danger': 'tw-bg-sq-danger-color tw-border tw-border-sq-danger-color tw-text-white hover:tw-bg-opacity-90 disabled:tw-bg-sq-disabled-gray',
+        'ghost': 'tw-bg-transparent tw-border-none tw-text-sq-color-dark hover:tw-bg-sq-light-gray disabled:tw-text-gray-400'
+      };
+
+      const sizeClasses = {
+        'xs': 'tw-text-xs tw-h-[24px]',
+        'sm': 'tw-text-sm tw-h-[30px]',
+        'lg': 'tw-text-base tw-h-[38px]'
+      };
+
+      return (
+        <button
+          className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`}
+          onClick={onClick}
+          disabled={disabled}
+          title={tooltip}
+        >
+          {icon && <Icon icon={icon} />}
+          {label && <span>{label}</span>}
+        </button>
+      );
+    };
+
+    // HistoryTabWithArchives Component (from qomponents source)
+    const HistoryTabWithArchives = () => {
+      const mockHistory = [
+        { id: '1', timestamp: 'Dec 19, 02:30 PM', status: 'Completed', duration: '2.3s', conditions: 12 },
+        { id: '2', timestamp: 'Dec 19, 02:15 PM', status: 'Completed', duration: '2.1s', conditions: 12 },
+        { id: '3', timestamp: 'Dec 19, 02:00 PM', status: 'Completed', duration: '2.4s', conditions: 12 },
+        { id: '4', timestamp: 'Dec 19, 01:45 PM', status: 'Failed', duration: '0.8s', conditions: 0 },
+        { id: '5', timestamp: 'Dec 19, 01:30 PM', status: 'Completed', duration: '2.2s', conditions: 12 },
+      ];
+
+      const archivedMonitors = [
+        {
+          id: 'm1',
+          name: 'Production Line B Monitor',
+          archivedDate: 'Dec 10, 2024',
+          archivedBy: 'John Smith',
+          reason: 'Line decommissioned',
+          totalRuns: 1547,
+        },
+        {
+          id: 'm2',
+          name: 'Test Environment Monitor',
+          archivedDate: 'Nov 20, 2024',
+          archivedBy: 'Jane Doe',
+          reason: 'Replaced with new configuration',
+          totalRuns: 892,
+        },
+      ];
+
+      const archivedConditions = [
+        {
+          id: 'a1',
+          name: 'Deprecated Flow Alert',
+          archivedDate: 'Dec 1, 2024',
+          reason: 'No longer monitored',
+          totalTriggers: 45,
+        },
+        {
+          id: 'a2',
+          name: 'Old Temperature Sensor',
+          archivedDate: 'Nov 15, 2024',
+          reason: 'Sensor replaced',
+          totalTriggers: 128,
+        },
+        {
+          id: 'a3',
+          name: 'Legacy Pressure Alert',
+          archivedDate: 'Oct 30, 2024',
+          reason: 'Updated to new threshold',
+          totalTriggers: 67,
+        },
+      ];
+
+      return (
+        <div className="tw-p-6 tw-bg-white dark:tw-bg-gray-900 tw-min-h-screen">
+          {/* Run History Section */}
+          <div className="tw-mb-12">
+            <div className="tw-mb-6">
+              <h2 className="tw-text-2xl tw-font-bold tw-mb-2">Run History</h2>
+              <p className="tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                View past executions of your condition monitor
+              </p>
+            </div>
+
+            <div className="tw-border tw-rounded-lg tw-overflow-hidden">
+              <table className="tw-w-full">
+                <thead className="tw-bg-gray-100 dark:tw-bg-gray-800">
+                  <tr>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Timestamp</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Status</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Duration</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Conditions Found</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockHistory.map((run) => (
+                    <tr key={run.id} className="tw-border-t dark:tw-border-gray-700 hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800">
+                      <td className="tw-px-4 tw-py-3 tw-text-sm">{run.timestamp}</td>
+                      <td className="tw-px-4 tw-py-3">
+                        {run.status === 'Completed' ? (
+                          <span className="tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-bg-green-100 dark:tw-bg-green-900/30 tw-text-green-800 dark:tw-text-green-300">
+                            {run.status}
+                          </span>
+                        ) : (
+                          <span className="tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-bg-red-100 dark:tw-bg-red-900/30 tw-text-red-800 dark:tw-text-red-300">
+                            {run.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm">{run.duration}</td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-font-semibold">{run.conditions}</td>
+                      <td className="tw-px-4 tw-py-3">
+                        <Button variant="ghost" icon="fa-info-circle" size="sm" tooltip="View Details" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Archived Condition Monitors Section */}
+          <div className="tw-mb-12 tw-pt-6 tw-border-t-2 tw-border-gray-300 dark:tw-border-gray-600">
+            <div className="tw-mb-6">
+              <h2 className="tw-text-2xl tw-font-bold tw-mb-2 tw-flex tw-items-center tw-gap-2">
+                <Icon icon="fa-archive" />
+                Archived Condition Monitors
+              </h2>
+              <p className="tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                Previously configured monitors that have been archived
+              </p>
+            </div>
+
+            <div className="tw-border tw-rounded-lg tw-overflow-hidden">
+              <table className="tw-w-full">
+                <thead className="tw-bg-gray-100 dark:tw-bg-gray-800">
+                  <tr>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Monitor Name</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Archived Date</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Archived By</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Total Runs</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Reason</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archivedMonitors.map((monitor) => (
+                    <tr
+                      key={monitor.id}
+                      className="tw-border-t dark:tw-border-gray-700 hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800">
+                      <td className="tw-px-4 tw-py-3">
+                        <div className="tw-flex tw-items-center tw-gap-2">
+                          <Icon icon="fa-archive" extraClassNames="tw-text-gray-400" />
+                          <span className="tw-font-medium tw-text-gray-600 dark:tw-text-gray-400">{monitor.name}</span>
+                        </div>
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                        {monitor.archivedDate}
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                        {monitor.archivedBy}
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-font-semibold">{monitor.totalRuns}</td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                        {monitor.reason}
+                      </td>
+                      <td className="tw-px-4 tw-py-3">
+                        <div className="tw-flex tw-gap-2">
+                          <Button variant="ghost" icon="fa-eye" size="sm" tooltip="View Configuration" />
+                          <Button variant="ghost" icon="fa-history" size="sm" tooltip="View History" />
+                          <Button variant="ghost" icon="fa-undo" size="sm" tooltip="Restore" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Archived Conditions Section */}
+          <div className="tw-pt-6 tw-border-t-2 tw-border-gray-300 dark:tw-border-gray-600">
+            <div className="tw-mb-6">
+              <h2 className="tw-text-2xl tw-font-bold tw-mb-2 tw-flex tw-items-center tw-gap-2">
+                <Icon icon="fa-archive" />
+                Archived Conditions
+              </h2>
+              <p className="tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                Conditions that are no longer being monitored
+              </p>
+            </div>
+
+            <div className="tw-border tw-rounded-lg tw-overflow-hidden">
+              <table className="tw-w-full">
+                <thead className="tw-bg-gray-100 dark:tw-bg-gray-800">
+                  <tr>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Condition Name</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Archived Date</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Total Triggers</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Reason</th>
+                    <th className="tw-px-4 tw-py-3 tw-text-left tw-text-sm tw-font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archivedConditions.map((condition) => (
+                    <tr
+                      key={condition.id}
+                      className="tw-border-t dark:tw-border-gray-700 hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800">
+                      <td className="tw-px-4 tw-py-3">
+                        <div className="tw-flex tw-items-center tw-gap-2">
+                          <Icon icon="fa-archive" extraClassNames="tw-text-gray-400" />
+                          <span className="tw-font-medium tw-text-gray-600 dark:tw-text-gray-400">{condition.name}</span>
+                        </div>
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                        {condition.archivedDate}
+                      </td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-font-semibold">{condition.totalTriggers}</td>
+                      <td className="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+                        {condition.reason}
+                      </td>
+                      <td className="tw-px-4 tw-py-3">
+                        <div className="tw-flex tw-gap-2">
+                          <Button variant="ghost" icon="fa-eye" size="sm" tooltip="View Details" />
+                          <Button variant="ghost" icon="fa-chart-line" size="sm" tooltip="View History" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Render the component
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HistoryTabWithArchives />);
+  </script>
+</body>
+</html>

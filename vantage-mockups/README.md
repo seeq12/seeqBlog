@@ -43,6 +43,30 @@ Monitor Execution → Conditions Tab → Results Display → History Tab
 - 👁️ **View Only - Read Access**: Non-admin user viewing existing configuration
 - 🚫 **View Only - No Config**: Non-admin user when no monitor is configured
 
+### 2. History Tab with Archives
+**File:** `history-tab-with-archives.html`
+**CRAB:** CRAB-50387
+
+Comprehensive audit trail showing run history, archived condition monitors, and archived conditions with restore capabilities.
+
+**Data Flow:**
+```
+Monitor Execution → Run History Storage → Archive Action →
+Archived Monitors/Conditions Table → Restore/View Actions
+```
+
+**Features:**
+- 3 interactive table sections (Run History, Archived Monitors, Archived Conditions)
+- Full audit trail of monitor executions with status indicators (Completed/Failed)
+- Archive management with metadata (archived by, date, reason)
+- Action buttons for viewing details, history, and restoring archived items
+- Pixel-perfect Seeq design system implementation
+
+**Sections:**
+- 📊 **Run History**: Past executions showing timestamp, status, duration, and conditions found
+- 📦 **Archived Monitors**: Previously configured monitors with archive metadata and restore capability
+- 🗃️ **Archived Conditions**: Individual conditions no longer being monitored with trigger counts
+
 ## Viewing Mockups Locally
 
 Simply open any HTML file in your browser:
@@ -122,6 +146,7 @@ https://seeq12.github.io/crab/vantage-mockups/vantage-configuration-tab-integrat
 The original qomponent source files are located at:
 ```
 client/packages/qomponents/src/VantageConfigurationTabIntegratedV2/
+client/packages/qomponents/src/HistoryTabWithArchives/
 ```
 
 These mockups are prototypes for CRAB-50387 (Vantage: Improved flow for managing monitored conditions).
