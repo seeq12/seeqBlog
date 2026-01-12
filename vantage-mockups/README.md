@@ -73,10 +73,90 @@ Archived Monitors/Conditions Table → Restore/View Actions
 
 Modal dialog for previewing and selecting conditions from search results before creating a monitor, with filtering and bulk selection capabilities.
 
-**Data Flow:**
+**Data Flow (Simple):**
 ```
 Search Criteria → Execute Search → Item Finder API →
 Condition Results Table → User Selection → Confirm & Create Monitor
+```
+
+**Semantic Dataflow (Detailed):**
+```
+┌────────────────────────┐
+│ User Search Criteria   │ (SOURCE)
+│ - Property Searches    │
+│ - Search Types         │
+│ - Predicates           │
+└───────────┬────────────┘
+            │ [HTTP POST /items/search, STATELESS]
+            ↓
+┌────────────────────────┐
+│ Item Finder Search API │ (DERIVED)
+│ - Parse Search Payload │
+│ - Query Database       │
+│ - Apply Predicates     │
+│ - Filter by Type       │
+│ - Apply Limit          │
+└───────────┬────────────┘
+            │ [transform operation, MONOTONIC]
+            ↓
+┌────────────────────────┐
+│ Search Results Set     │ (DERIVED)
+│ - Condition Items      │
+│ - Metadata (path, etc) │
+│ - Pagination Info      │
+└───────────┬────────────┘
+            │ [render operation]
+            ↓
+┌────────────────────────┐
+│ Results Table Display  │ (SINK)
+│ - Render Rows          │
+│ - Selection State      │
+│ - Filter Controls      │
+└───────────┬────────────┘
+            │ [user interaction, STATEFUL]
+            ↓
+┌────────────────────────┐
+│ User Selection         │ (SOURCE)
+│ - Selected IDs         │
+│ - Validation Rules     │
+└───────────┬────────────┘
+            │ [HTTP POST /monitors, STATEFUL]
+            ↓
+┌────────────────────────┐
+│ Create Monitor Request │ (SINK)
+│ - Monitor Config       │
+│ - Selected Conditions  │
+└────────────────────────┘
+```
+
+**API Structure:**
+```typescript
+// Request Payload
+interface ItemFinderSearchesInputV1 {
+  propertySearches: PropertySearchV1[];
+  fixedListSearches?: FixedListSearchV1[];
+  limit: number;  // default: 40
+}
+
+interface PropertySearchV1 {
+  searchType: 'PROPERTY';
+  isInclude: boolean;  // true = AND, false = NOT
+  predicates: PredicateV1[];
+  types: string[];     // ['Condition', 'Signal', etc.]
+}
+
+interface PredicateV1 {
+  propertyName: string;      // 'Name', 'Description', etc.
+  operator: string;          // 'STRING_CONTAINS', 'EQUALS', etc.
+  values: { value: string }[];
+}
+
+// Response
+interface ItemFinderSearchesOutputV1 {
+  items: ItemOutputV1[];
+  hasMore: boolean;
+  offset?: string;
+}
 ```
 
 **Features:**
